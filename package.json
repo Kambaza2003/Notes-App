@@ -19,7 +19,8 @@
   },
   "homepage": "https://github.com/Kambaza2003/Notes-App#readme",
   "dependencies": {
-    "express": "^5.2.1"
+    "express": "^5.2.1",
+    "mysql2": "^3.22.6"
   },
   "devDependencies": {
     "tailwindcss": "^4.3.2"

@@ -1,9 +1,10 @@
-const {notes} = require("../models/noteModel");
+const { getAllNotes } = require("../models/noteModel");
 
-const getNotes = (req, res) => {
+const getNotes = async (req, res) => {
 
-    res.json(notes);
+    const [rows] = await getAllNotes();
 
+    res.json(rows);
 };
 
 const getNoteById = (req, res) => {
