@@ -1,10 +1,36 @@
-const { getAllNotes } = require("../models/noteModel");
+const { getAllNotes, createNote: createNoteModel, updateNote: updateNoteModel, deleteNote: deleteNoteModel } = require("../models/noteModel");
 
 const getNotes = async (req, res) => {
 
     const [rows] = await getAllNotes();
 
     res.json(rows);
+};
+
+const createNote = async (req, res) => {
+
+    const text = req.body.text;
+
+    await createNoteModel(text);
+
+    res.status(201).json({
+        message: "Note created successfully"
+    });
+
+};
+
+const updateNote = async (req, res) => {
+
+    const id = parseInt(req.params.id);
+
+    const text = req.body.text;
+
+    await updateNoteModel(id, text);
+
+    res.json({
+        message: "Note updated successfully"
+    });
+
 };
 
 const getNoteById = (req, res) => {
@@ -90,55 +116,16 @@ const longestNote = (req, res) => {
     res.json(longestNotes)
 }
 
-const createNote = (req, res) => {
-    const newNote = {
 
-        id: notes.length + 1,
-        text: req.body.text
-    }
-
-    if(!notes){
-        return res.status(404).send("Notes does not exist")
-    }
-
-    notes.push(newNote);
-
-    res.status(201).send("New note created")
-
-    res.json(newNote); 
-}
-
-
-const updateNote = (req, res) => {
-    const id = parseInt(req.params.id);
-
-    const note = notes.find(f => f.id === id);
-
-    if(!note){
-        return res.status(404).send("Note not found");
-    }
-
-    note.text = req.body.text;
-
-    res.json(note);
-}
-
-const deleteNote = (req, res) => {
+const deleteNote = async (req, res) => {
 
     const id = parseInt(req.params.id);
 
-    const index = notes.findIndex(n => n.id === id);
-
-    if (index === -1) {
-        return res.status(404).send("Note not found");
-    }
-
-    notes.splice(index, 1);
+    await deleteNoteModel(id);
 
     res.json({
-        message: "Deleted successfully"
+        message: "Note deleted successfully"
     });
-
 }
 
 module.exports = {
