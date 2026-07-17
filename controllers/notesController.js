@@ -1,132 +1,179 @@
-const { getAllNotes, createNote: createNoteModel, updateNote: updateNoteModel, deleteNote: deleteNoteModel } = require("../models/noteModel");
+const { getAllNotes, createNote: createNoteModel, updateNote: updateNoteModel, deleteNote: deleteNoteModel, getNoteById: getNoteByIdModel, latestNote: latestNoteModel, shortestNote: shortestNoteModel, longestNote: longestNoteModel, totalCharacters: totalCharactersModel, searchNotes: searchNotesModel } = require("../models/noteModel");
 
 const getNotes = async (req, res) => {
+    try{
+        const [rows] = await getAllNotes();
 
-    const [rows] = await getAllNotes();
+        res.json(rows);
 
-    res.json(rows);
+    }catch (error) {
+        console.error(error);
+
+        res.status(500).json({
+            message: "Internal Server Error"
+        });
+    }
 };
 
 const createNote = async (req, res) => {
+    try{ 
+        const text = req.body.text;
 
-    const text = req.body.text;
+        await createNoteModel(text);
 
-    await createNoteModel(text);
+        res.status(201).json({
+            message: "Note created successfully"
+        });
+    }catch (error) {
+        console.error(error);
 
-    res.status(201).json({
-        message: "Note created successfully"
-    });
+        res.status(500).json({
+            message: "Internal Server Error"
+        });
+    }
 
 };
 
 const updateNote = async (req, res) => {
+    try{
 
-    const id = parseInt(req.params.id);
+        const id = parseInt(req.params.id);
 
-    const text = req.body.text;
+        const text = req.body.text;
 
-    await updateNoteModel(id, text);
+        const [result] = await updateNoteModel(id, text);
+        if (result.affectedRows === 0){
+            return res.status(404).json({
+                message: "Note not found"
+            });
+        }
+        res.json({
+            message: "Note updated successfully"
+        });
+   }catch (error) {
+        console.error(error);
 
-    res.json({
-        message: "Note updated successfully"
-    });
-
+        res.status(500).json({
+            message: "Internal Server Error"
+        });
+    }
 };
 
-const getNoteById = (req, res) => {
+const getNoteById = async (req, res) => {
+    try {
+        const id = parseInt(req.params.id)
 
-    const id = parseInt(req.params.id);
+        const [rows] = await getNoteByIdModel(id)
 
-    const note = notes.find(f => f.id === id);
+        res.json(rows);
+    }catch (error) {
+        console.error(error);
 
-    if (!note) {
-        return res.status(404).send("Note not found");
+        res.status(500).json({
+            message: "Internal Server Error"
+        });
     }
-
-    res.json(note);
-
 };
 
-const totalCharacters = (req, res) => {
-    let totalCharacters = 0;
-    
-    for(let i = 0; i < notes.length; i++){
-        totalCharacters = totalCharacters + notes[i].text.length;
-    }
+const totalCharacters = async (req, res) => {
+    try{
+        const characters = await totalCharactersModel()
 
-    res.json({
-        charcters: totalCharacters
-    });
+        res.json({
+            characters: characters
+        });
+    }catch (error) {
+        console.error(error);
+
+        res.status(500).json({
+            message: "Internal Server Error"
+        });
+    }
 }
 
-const searchNotes = (req, res) => {
-    const text = req.params.text.toLowerCase();
+const searchNotes = async (req, res) => {
+    try {
+        const text = req.params.text.toLowerCase();
 
-    const note = notes.filter(s => s.text.toLowerCase().includes(text));
+        const note = await searchNotesModel(text)
 
-    if(note.length === 0) {
-        return res.status(404).send("Text Not Found");
+        res.json(note)
+    }catch (error) {
+        console.error(error);
+
+        res.status(500).json({
+            message: "Internal Server Error"
+        });
     }
-
-    res.json(note)
 }
 
-const latestNote = (req, res) => {
+const latestNote = async (req, res) => {
+    try {
+        const [rows] = await latestNoteModel(); 
 
-    if(notes.length === 0){
-        return res.status(404).send("Notes not found")
+        res.json(rows)
+    }catch (error) {
+        console.error(error);
+
+        res.status(500).json({
+            message: "Internal Server Error"
+        });
     }
-
-    let latestNotes = notes[notes.length - 1]; 
-
-    res.json(latestNotes)
 }
 
-const shortestNote = (req, res) => {
+const shortestNote = async (req, res) => {
+   try {
+        const [rows] = await shortestNoteModel();
 
-    if(notes.length === 0){
-        return res.status(404).send("Notes not found")
+        res.json(rows)
+   }catch (error) {
+        console.error(error);
+
+        res.status(500).json({
+            message: "Internal Server Error"
+        });
     }
-
-    let shortestNotes = notes[0];
-
-    for (let i = 0; i < notes.length; i++){
-        if(notes[i].text.length < shortestNotes.text.length){
-            shortestNotes = notes[i];
-        }
-    }
-
-    res.json(shortestNotes)
 }
 
-const longestNote = (req, res) => {
+const longestNote = async (req, res) => {
+    try {
+        const [rows] = await longestNoteModel()
 
-    if(notes.length === 0){
-        return res.status(404).send("Notes not found")
+        res.json(rows)
+    }catch (error) {
+        console.error(error);
+
+        res.status(500).json({
+            message: "Internal Server Error"
+        });
     }
-
-    let longestNotes = notes[0];
-
-    for (let i = 0; i < notes.length; i++){
-        if(notes[i].text.length > longestNotes.text.length){
-            longestNotes = notes[i];
-        }
-    }
-
-    res.json(longestNotes)
 }
 
 
 const deleteNote = async (req, res) => {
+    try {
+        const id = parseInt(req.params.id);
 
-    const id = parseInt(req.params.id);
+        const [result] = await deleteNoteModel(id);
 
-    await deleteNoteModel(id);
+        if (result.affectedRows === 0) {
+            return res.status(404).json({
+                message: "Note not found"
+            });
+        }
 
-    res.json({
-        message: "Note deleted successfully"
-    });
-}
+        return res.json({
+            message: "Note successfully deleted"
+        });
+
+    } catch (error) {
+        console.error(error);
+
+        res.status(500).json({
+            message: "Internal Server Error"
+        });
+    }
+};
 
 module.exports = {
     getNotes,
