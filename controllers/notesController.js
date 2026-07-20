@@ -42,6 +42,7 @@ const updateNote = async (req, res) => {
         const text = req.body.text;
 
         const [result] = await updateNoteModel(id, text);
+        
         if (result.affectedRows === 0){
             return res.status(404).json({
                 message: "Note not found"
@@ -61,51 +62,76 @@ const updateNote = async (req, res) => {
 
 const getNoteById = async (req, res) => {
     try {
-        const id = parseInt(req.params.id)
+        const id = parseInt(req.params.id);
 
-        const [rows] = await getNoteByIdModel(id)
+        if (isNaN(id)) {
+            return res.status(400).json({
+                message: "Invalid note ID"
+            });
+        }
 
-        res.json(rows);
-    }catch (error) {
+        const [rows] = await getNoteByIdModel(id);
+
+        if (rows.length === 0) {
+            return res.status(404).json({
+                message: "Note not found"
+            });
+        }
+
+        return res.json(rows[0]);
+
+    } catch (error) {
         console.error(error);
 
-        res.status(500).json({
+        return res.status(500).json({
             message: "Internal Server Error"
         });
     }
 };
 
 const totalCharacters = async (req, res) => {
-    try{
-        const characters = await totalCharactersModel()
+    try {
+        const [rows] = await totalCharactersModel();
 
-        res.json({
-            characters: characters
-        });
-    }catch (error) {
+        if (rows[0].totalCharacters === null) {
+            return res.status(404).json({
+                message: "No notes found"
+            });
+        }
+
+        return res.json(rows[0]);
+
+    } catch (error) {
         console.error(error);
 
-        res.status(500).json({
+        return res.status(500).json({
             message: "Internal Server Error"
         });
     }
-}
+};
 
 const searchNotes = async (req, res) => {
     try {
-        const text = req.params.text.toLowerCase();
+        const text = req.params.text?.trim();
 
-        const note = await searchNotesModel(text)
+        if (!text) {
+            return res.status(400).json({
+                message: "Search text is required"
+            });
+        }
 
-        res.json(note)
-    }catch (error) {
+        const [rows] = await searchNotesModel(text);
+
+        return res.json(rows);
+
+    } catch (error) {
         console.error(error);
 
-        res.status(500).json({
+        return res.status(500).json({
             message: "Internal Server Error"
         });
     }
-}
+};
 
 const latestNote = async (req, res) => {
     try {
@@ -123,9 +149,15 @@ const latestNote = async (req, res) => {
 
 const shortestNote = async (req, res) => {
    try {
-        const [rows] = await shortestNoteModel();
+        const [rows] = await longestNoteModel();
 
-        res.json(rows)
+        if (rows.length === 0) {
+            return res.status(404).json({
+                message: "No notes found"
+            });
+        }
+
+        return res.json(rows[0]);
    }catch (error) {
         console.error(error);
 
@@ -137,9 +169,15 @@ const shortestNote = async (req, res) => {
 
 const longestNote = async (req, res) => {
     try {
-        const [rows] = await longestNoteModel()
+        const [rows] = await longestNoteModel();
 
-        res.json(rows)
+        if (rows.length === 0) {
+            return res.status(404).json({
+                message: "No notes found"
+            });
+        }
+
+        return res.json(rows[0]);
     }catch (error) {
         console.error(error);
 
@@ -152,7 +190,13 @@ const longestNote = async (req, res) => {
 
 const deleteNote = async (req, res) => {
     try {
-        const id = parseInt(req.params.id);
+       const id = parseInt(req.params.id);
+
+        if (isNaN(id)) {
+            return res.status(400).json({
+                message: "Invalid note ID"
+            });
+        }
 
         const [result] = await deleteNoteModel(id);
 
@@ -165,7 +209,6 @@ const deleteNote = async (req, res) => {
         return res.json({
             message: "Note successfully deleted"
         });
-
     } catch (error) {
         console.error(error);
 
